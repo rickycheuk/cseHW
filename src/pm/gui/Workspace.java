@@ -1,40 +1,31 @@
 package pm.gui;
 
-import java.awt.Event;
-import java.awt.event.ActionEvent;
-import java.beans.EventHandler;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
+import javafx.scene.*;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import properties_manager.PropertiesManager;
 import saf.ui.AppGUI;
 import saf.AppTemplate;
 import saf.components.AppWorkspaceComponent;
@@ -54,6 +45,13 @@ public class Workspace extends AppWorkspaceComponent {
     static final String CLASS_TAG_BUTTON = "tag_button";
     static final String EMPTY_TEXT = "";
     static final int BUTTON_TAG_WIDTH = 50;
+    Canvas canvas;
+    ArrayList<Circle> c;
+    ArrayList<Rectangle> r;
+    String commend = "";
+    GraphicsContext gc;
+    final ColorPicker colorPicker2 = new ColorPicker();    
+    final ColorPicker colorPicker3 = new ColorPicker();
 
     // HERE'S THE APP
     AppTemplate app;
@@ -110,15 +108,21 @@ public class Workspace extends AppWorkspaceComponent {
 	// KEEP THE GUI FOR LATER
 	gui = app.getGUI();
 
-	// THIS WILL PROVIDE US WITH OUR CUSTOM UI SETTINGS AND TEXT
-	PropertiesManager propsSingleton = PropertiesManager.getPropertiesManager();
-
 	// WE'LL ORGANIZE OUR WORKSPACE COMPONENTS USING A BORDER PANE
 	workspace = new BorderPane(); 
 	// FIRST THE LEFT HALF OF THE SPLIT PANE
 	leftPane = new BorderPane();
         
-
+        canvas = new Canvas(800,600);
+        canvas.setStyle("-fx-background-color: cyan");
+	gc = canvas.getGraphicsContext2D();
+        
+        
+        
+        Group root = new Group();
+        StackPane holder = new StackPane();
+        holder.getChildren().add(canvas);
+        root.getChildren().add(holder);
 	// THIS WILL MANAGE ALL EDITING EVENTS
 
         VBox vbox = new VBox(1);
@@ -150,7 +154,27 @@ public class Workspace extends AppWorkspaceComponent {
         dButton.setTranslateX(20);
         dButton.setTranslateY(10);
         tagToolbar.getChildren().add(dButton);
-
+        dButton.setOnAction(me -> {
+            canvas.setOnMouseClicked(e->{
+                for (int i = 0; i < c.size(); i++) {
+                    if(canvas.getOnMouseClicked().equals(c.get(i))){
+                        c.remove(i);
+                        render();
+                        break;
+                    }
+                }
+                for (int i = 0; i < r.size(); i++) {
+                    if(canvas.getOnMouseClicked().equals(r.get(i))){
+                        r.remove(i);
+                        render();
+                        break;
+                    }
+                }
+            });
+        });
+        
+        r= new ArrayList();
+        
         Button rButton = new Button("[]");
         tagButtons.add(rButton);
         rButton.setMaxWidth(BUTTON_TAG_WIDTH);
@@ -160,6 +184,31 @@ public class Workspace extends AppWorkspaceComponent {
         rButton.setTranslateX(30);
         rButton.setTranslateY(10);
         tagToolbar.getChildren().add(rButton);
+        rButton.setOnAction(me -> {
+            Rectangle rec = new Rectangle();
+            canvas.setOnMousePressed(e->{
+                rec.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                rec.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                rec.setX(e.getX());
+                rec.setY(e.getY());
+                rec.setWidth(0);
+                rec.setHeight(0);
+                render();
+            });
+            canvas.setOnMouseDragged(e->{
+                rec.setWidth(e.getX() -  rec.getX());
+                rec.setHeight(e.getY() -  rec.getY());
+                render();
+            });
+            canvas.setOnMouseReleased(e->{
+                rec.setWidth(e.getX() - rec.getX());
+                rec.setHeight(e.getY() -  rec.getY());
+                r.add(rec);
+                render();
+            });
+        });
+        
+        c= new ArrayList();
         
         Button cButton = new Button("O");
         tagButtons.add(cButton);
@@ -170,12 +219,32 @@ public class Workspace extends AppWorkspaceComponent {
         cButton.setTranslateX(40);
         cButton.setTranslateY(10);
         tagToolbar.getChildren().add(cButton);
+        cButton.setOnAction(me -> {
+            Circle cir = new Circle();
+            canvas.setOnMousePressed(e->{
+                cir.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                cir.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                cir.setRadius(0);
+                cir.setCenterX(e.getX());
+                cir.setCenterY(e.getY());
+                render();
+            });
+            canvas.setOnMouseDragged(e->{
+                cir.setRadius(e.getX() - cir.getCenterX());
+                render();
+            });
+            canvas.setOnMouseReleased(e->{
+                cir.setRadius(e.getX() - cir.getCenterX());
+                c.add(cir);
+                render();
+            });
+            
+        });
         
         tagToolbar2 = new FlowPane(Orientation.HORIZONTAL);
         tagToolbar2.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
         tagToolbar2.setPrefWidth(260);
         tagToolbar2.setMinHeight(80);
-        
         Button upButton = new Button("^");
         tagButtons.add(upButton);
         upButton.setMaxWidth(BUTTON_TAG_WIDTH+50);
@@ -185,6 +254,7 @@ public class Workspace extends AppWorkspaceComponent {
         upButton.setTranslateX(10);
         upButton.setTranslateY(10);
         tagToolbar2.getChildren().add(upButton);
+        
 	
         Button doButton = new Button("v");
         tagButtons.add(doButton);
@@ -222,7 +292,6 @@ public class Workspace extends AppWorkspaceComponent {
         t1.setTranslateY(10);
         t1.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar4.getChildren().add(t1);
-        final ColorPicker colorPicker2 = new ColorPicker();
         colorPicker2.setValue(Color.WHITE);
         colorPicker2.setTranslateY(20);
         colorPicker2.setTranslateX(10);
@@ -238,7 +307,6 @@ public class Workspace extends AppWorkspaceComponent {
         t2.setTranslateY(10);
         t2.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar5.getChildren().add(t2);
-        final ColorPicker colorPicker3 = new ColorPicker();
         colorPicker3.setValue(Color.BLACK);
         colorPicker3.setTranslateY(20);
         colorPicker3.setTranslateX(10);
@@ -253,31 +321,38 @@ public class Workspace extends AppWorkspaceComponent {
         t3.setTranslateX(10);
         t3.setTranslateY(10);
         t3.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        tagToolbar5.getChildren().add(t3);
+        tagToolbar6.getChildren().add(t3);
         
         Pane tagToolbar7 = new FlowPane(Orientation.HORIZONTAL);
         tagToolbar7.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
         tagToolbar7.setPrefWidth(260);
         tagToolbar7.setMinHeight(80);
         tagToolbar7.setMaxHeight(80);
+         Button ssButton = new Button("[O]");
+        tagButtons.add(upButton);
+        ssButton.setMaxWidth(BUTTON_TAG_WIDTH+170);
+        ssButton.setMinWidth(BUTTON_TAG_WIDTH+170);
+        ssButton.setPrefWidth(BUTTON_TAG_WIDTH+170);
+        ssButton.setPrefHeight(BUTTON_TAG_WIDTH);
+        ssButton.setTranslateX(10);
+        ssButton.setTranslateY(10);
+        tagToolbar7.getChildren().add(ssButton);
         
         vbox.getChildren().addAll(tagToolbar,tagToolbar2,tagToolbar3,tagToolbar4,tagToolbar5,tagToolbar6,tagToolbar7);
         
-	// AND NOW THE REGION FOR EDITING TAG PROPERTIES
-	tagEditorPane = new Pane();
-        tagEditorPane.setStyle("-fx-background-color: #"+ colorPicker.getValue().toString().substring(2,8));
-        tagEditorPane.setPrefWidth(800);
-        tagEditorPane.setMaxWidth(800);
-        tagEditorPane.setMinWidth(800);
-        tagEditorPane.setPrefHeight(600); 
+	
+        holder.setStyle("-fx-background-color: #"+ colorPicker.getValue().toString().substring(2,8));
+        canvas.setLayoutX(800);
+        canvas.setLayoutY(800);
+        canvas.setVisible(true);
         
-         colorPicker.setOnAction(e -> {
-		tagEditorPane.setStyle("-fx-background-color: #"+ colorPicker.getValue().toString().substring(2,8));
-	    });
+        colorPicker.setOnAction(e -> {
+            holder.setStyle("-fx-background-color: #"+ colorPicker.getValue().toString().substring(2,8));
+	});
 	// PUT THEM IN THE LEFT
 	leftPane.setLeft(vbox);
         leftPane.getLeft().setStyle("-fx-border-color: #327b8f");
-	leftPane.setRight(tagEditorPane);
+	leftPane.setRight(holder);
         
 	// NOW FOR THE RIGHT
 	rightPane = new TabPane();
@@ -286,8 +361,6 @@ public class Workspace extends AppWorkspaceComponent {
 	// AND NOW PUT IT IN THE WORKSPACE
 	workspaceSplitPane = new SplitPane();
 	workspaceSplitPane.getItems().add(leftPane);
-	workspaceSplitPane.getItems().add(rightPane);
-
 	// AND FINALLY, LET'S MAKE THE SPLIT PANE THE WORKSPACE
 	workspace = new Pane();
 	workspace.getChildren().add(workspaceSplitPane);
@@ -296,6 +369,8 @@ public class Workspace extends AppWorkspaceComponent {
 	// THAT WILL BE DONE WHEN THE USER EITHER CREATES A NEW
 	// COURSE OR LOADS AN EXISTING ONE FOR EDITING
 	workspaceActivated = false;
+        
+        
     }
     
     /**
@@ -317,6 +392,50 @@ public class Workspace extends AppWorkspaceComponent {
      */
     @Override
     public void reloadWorkspace() {
-
+        
+    }
+    
+    public void clearworkspace() {
+	gc.clearRect(0, 0, workspace.getWidth(), workspace.getHeight());
+    }
+    public void clear() {
+	c.clear();
+        r.clear();
+	render();
+    }
+    public void render(){
+	clearworkspace();
+	for (int i = 0; i < c.size(); i++) {
+                renderCir(c.get(i));   
+	}
+        for (int i = 0; i < r.size(); i++) {
+                renderRec(r.get(i)); 
+	}
+    }
+    public void renderRec(Rectangle rLoc) {
+    
+	// DRAW HIS RED HEAD
+        gc.setFill(rLoc.getFill());
+	gc.fillRect(rLoc.getX(), rLoc.getY(), rLoc.getWidth(), rLoc.getHeight());
+        gc.beginPath();
+	gc.setStroke(rLoc.getStroke());
+	gc.setLineWidth(1);
+	gc.rect(rLoc.getX(), rLoc.getY(), rLoc.getWidth(), rLoc.getHeight());
+	gc.stroke();
+	
+	// AND THEN DRAW THE REST OF HIM
+    }
+    public void renderCir(Circle cLoc) {
+    
+	// DRAW HIS RED HEAD
+        gc.setFill(cLoc.getFill());
+	gc.fillOval(cLoc.getCenterX(), cLoc.getCenterY(), cLoc.getRadius(), cLoc.getRadius());
+        gc.beginPath();
+	gc.setStroke(cLoc.getStroke());
+	gc.setLineWidth(1);
+	gc.strokeOval(cLoc.getCenterX(), cLoc.getCenterY(), cLoc.getRadius(), cLoc.getRadius());
+	gc.stroke();
+	
+	// AND THEN DRAW THE REST OF HIM
     }
 }
