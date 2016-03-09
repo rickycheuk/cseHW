@@ -2,6 +2,7 @@ package pm.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import javafx.geometry.Orientation;
 import javafx.scene.*;
 import javafx.scene.canvas.Canvas;
@@ -23,6 +24,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -46,13 +48,13 @@ public class Workspace extends AppWorkspaceComponent {
     static final String EMPTY_TEXT = "";
     static final int BUTTON_TAG_WIDTH = 50;
     Canvas canvas;
-    ArrayList<Circle> c;
-    ArrayList<Rectangle> r;
+    List<Shape> shapes = new ArrayList<Shape>();
+    double intX,intY;
     String commend = "";
     GraphicsContext gc;
     final ColorPicker colorPicker2 = new ColorPicker();    
     final ColorPicker colorPicker3 = new ColorPicker();
-
+    int cursor;
     // HERE'S THE APP
     AppTemplate app;
 
@@ -144,6 +146,33 @@ public class Workspace extends AppWorkspaceComponent {
         sButton.setTranslateX(10);
         sButton.setTranslateY(10);
         tagToolbar.getChildren().add(sButton);
+        sButton.setOnAction(me -> {
+            commend="s";
+            if(commend.equals("s")){
+                canvas.setOnMouseClicked(e->{
+                    for(int i=shapes.size()-1;i>=0;i--){
+                        if(shapes.get(i).getLayoutBounds().contains(e.getX(), e.getY())){
+                            cursor=i;
+                            gc.beginPath();
+                            gc.setStroke(Paint.valueOf("#ffff00"));
+                            gc.setLineWidth(1);
+                            gc.rect(shapes.get(i).getLayoutBounds().getMinX(), shapes.get(i).getLayoutBounds().getMinY(), shapes.get(i).getLayoutBounds().getWidth(), shapes.get(i).getLayoutBounds().getHeight());
+                            gc.stroke();
+                            break;
+                        }
+                    }
+                });
+                canvas.setOnMousePressed(e->{
+                    render();
+                    canvas.setOnMouseDragged(mee->{
+                        render();
+                    });
+                    canvas.setOnMouseReleased(mee->{
+                        render();
+                    });
+                });
+            }
+        });
 
         Button dButton = new Button("(X)");
         tagButtons.add(dButton);
@@ -155,25 +184,22 @@ public class Workspace extends AppWorkspaceComponent {
         dButton.setTranslateY(10);
         tagToolbar.getChildren().add(dButton);
         dButton.setOnAction(me -> {
-            canvas.setOnMouseClicked(e->{
-                for (int i = 0; i < c.size(); i++) {
-                    if(canvas.getOnMouseClicked().equals(c.get(i))){
-                        c.remove(i);
+            commend="d";
+            if(commend.equals("d")){
+                
+                render();
+                canvas.setOnMousePressed(e->{
+                    render();
+                    canvas.setOnMouseDragged(mee->{
                         render();
-                        break;
-                    }
-                }
-                for (int i = 0; i < r.size(); i++) {
-                    if(canvas.getOnMouseClicked().equals(r.get(i))){
-                        r.remove(i);
+                    });
+                    canvas.setOnMouseReleased(mee->{
                         render();
-                        break;
-                    }
-                }
-            });
+                    });
+                });
+            }
         });
         
-        r= new ArrayList();
         
         Button rButton = new Button("[]");
         tagButtons.add(rButton);
@@ -185,30 +211,45 @@ public class Workspace extends AppWorkspaceComponent {
         rButton.setTranslateY(10);
         tagToolbar.getChildren().add(rButton);
         rButton.setOnAction(me -> {
-            Rectangle rec = new Rectangle();
-            canvas.setOnMousePressed(e->{
-                rec.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
-                rec.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
-                rec.setX(e.getX());
-                rec.setY(e.getY());
-                rec.setWidth(0);
-                rec.setHeight(0);
-                render();
-            });
-            canvas.setOnMouseDragged(e->{
-                rec.setWidth(e.getX() -  rec.getX());
-                rec.setHeight(e.getY() -  rec.getY());
-                render();
-            });
-            canvas.setOnMouseReleased(e->{
-                rec.setWidth(e.getX() - rec.getX());
-                rec.setHeight(e.getY() -  rec.getY());
-                r.add(rec);
-                render();
-            });
+            commend="r";
+            if(commend.equals("r")){
+                canvas.setOnMousePressed(e->{
+                    Rectangle rec = new Rectangle();
+                    rec.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                    rec.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                    intX=e.getX();
+                    intY=e.getY();
+                    rec.setX(e.getX());
+                    rec.setY(e.getY());
+                    rec.setWidth(0);
+                    rec.setHeight(0);
+                    render();
+                });
+                canvas.setOnMouseDragged(mm->{
+                    Rectangle rec = new Rectangle();
+                    rec.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                    rec.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                    rec.setX(intX);
+                    rec.setY(intY);
+                    rec.setWidth(mm.getX()- rec.getX());
+                    rec.setHeight(mm.getY()- rec.getY());
+                    shapes.add(rec);
+                    render();
+                    shapes.remove(rec);
+                    canvas.setOnMouseReleased(mee->{
+                        rec.setWidth(mee.getX() - rec.getX());
+                        rec.setHeight(mee.getY() -  rec.getY());
+                        shapes.add(rec);
+                        render();
+                    });
+                
+                });
+                canvas.setOnMouseClicked(e->{
+
+                });
+            }
         });
         
-        c= new ArrayList();
         
         Button cButton = new Button("O");
         tagButtons.add(cButton);
@@ -220,25 +261,39 @@ public class Workspace extends AppWorkspaceComponent {
         cButton.setTranslateY(10);
         tagToolbar.getChildren().add(cButton);
         cButton.setOnAction(me -> {
-            Circle cir = new Circle();
-            canvas.setOnMousePressed(e->{
-                cir.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
-                cir.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
-                cir.setRadius(0);
-                cir.setCenterX(e.getX());
-                cir.setCenterY(e.getY());
-                render();
-            });
-            canvas.setOnMouseDragged(e->{
-                cir.setRadius(e.getX() - cir.getCenterX());
-                render();
-            });
-            canvas.setOnMouseReleased(e->{
-                cir.setRadius(e.getX() - cir.getCenterX());
-                c.add(cir);
-                render();
-            });
-            
+            commend="c";
+            if(commend.equals("c")){
+                canvas.setOnMousePressed(e->{
+                    Circle cir = new Circle();
+                    cir.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                    cir.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                    cir.setRadius(0);
+                    intX=e.getX();
+                    intY=e.getY();
+                    cir.setCenterX(e.getX());
+                    cir.setCenterY(e.getY());
+                    render();
+                });
+                canvas.setOnMouseDragged(mm->{
+                    Circle cir = new Circle();
+                    cir.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                    cir.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                    cir.setCenterX(intX);
+                    cir.setCenterY(intY);
+                    cir.setRadius(mm.getX() - cir.getCenterX());
+                    shapes.add(cir);
+                    render();
+                    shapes.remove(cir);
+                    canvas.setOnMouseReleased(mee->{
+                        cir.setRadius(mee.getX() - cir.getCenterX());
+                        shapes.add(cir);
+                        render();
+                    });
+                });
+                canvas.setOnMouseClicked(e->{
+
+                });
+            }
         });
         
         tagToolbar2 = new FlowPane(Orientation.HORIZONTAL);
@@ -399,21 +454,19 @@ public class Workspace extends AppWorkspaceComponent {
 	gc.clearRect(0, 0, workspace.getWidth(), workspace.getHeight());
     }
     public void clear() {
-	c.clear();
-        r.clear();
+	shapes.clear();
 	render();
     }
     public void render(){
 	clearworkspace();
-	for (int i = 0; i < c.size(); i++) {
-                renderCir(c.get(i));   
-	}
-        for (int i = 0; i < r.size(); i++) {
-                renderRec(r.get(i)); 
+	for (int i = 0; i <  shapes.size(); i++) {
+            if(shapes.get(i).getClass().equals(Circle.class))
+                renderCir((Circle)shapes.get(i));   
+            if(shapes.get(i).getClass().equals(Rectangle.class))
+                renderRec((Rectangle)shapes.get(i)); 
 	}
     }
     public void renderRec(Rectangle rLoc) {
-    
 	// DRAW HIS RED HEAD
         gc.setFill(rLoc.getFill());
 	gc.fillRect(rLoc.getX(), rLoc.getY(), rLoc.getWidth(), rLoc.getHeight());
