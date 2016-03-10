@@ -2,7 +2,6 @@ package pm.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javafx.geometry.Orientation;
@@ -25,7 +24,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -56,9 +54,11 @@ public class Workspace extends AppWorkspaceComponent {
     double intX,intY;
     String commend = "";
     GraphicsContext gc;
+    final ColorPicker colorPicker = new ColorPicker();
     final ColorPicker colorPicker2 = new ColorPicker();    
     final ColorPicker colorPicker3 = new ColorPicker();
-    int cursor;
+    int cursor=-1;
+    Slider slider = new Slider(0, 30, 15);
     // HERE'S THE APP
     AppTemplate app;
 
@@ -126,7 +126,6 @@ public class Workspace extends AppWorkspaceComponent {
         canvas.setCursor(Cursor.DEFAULT);
         canvas.getCursor();
         
-        Slider slider = new Slider(0, 30, 15);
         
         Group root = new Group();
         StackPane holder = new StackPane();
@@ -168,7 +167,10 @@ public class Workspace extends AppWorkspaceComponent {
                                 gc.setStroke(Paint.valueOf("#ffff00"));
                                 gc.setLineWidth(1);
                                 gc.rect(shapes.get(i).getLayoutBounds().getMinX(), shapes.get(i).getLayoutBounds().getMinY(), shapes.get(i).getLayoutBounds().getWidth(), shapes.get(i).getLayoutBounds().getHeight());
-                                gc.stroke();
+                                gc.stroke();    
+                                colorPicker2.setValue(Color.valueOf(shapes.get(cursor).getFill().toString().substring(2,8)));
+                                colorPicker3.setValue(Color.valueOf(shapes.get(cursor).getStroke().toString().substring(2,8)));
+                                slider.setValue(shapes.get(cursor).getStrokeWidth());
                                 break;
                             }
                             if(shapes.get(i).getClass().equals(Ellipse.class)){
@@ -177,12 +179,21 @@ public class Workspace extends AppWorkspaceComponent {
                                 gc.setLineWidth(1);
                                 Ellipse h=(Ellipse)shapes.get(i);
                                 gc.strokeOval(h.getCenterX(), h.getCenterY(), h.getRadiusX(), h.getRadiusY());
-                                gc.stroke();
+                                gc.stroke();    
+                                colorPicker2.setValue(Color.valueOf(shapes.get(cursor).getFill().toString().substring(2,8)));
+                                colorPicker3.setValue(Color.valueOf(shapes.get(cursor).getStroke().toString().substring(2,8)));
+                                slider.setValue(shapes.get(cursor).getStrokeWidth());
                                 break;
                             }
                         }
+                        else cursor=-1;
                     }
                 });
+                if(colorPicker2.isPressed()){
+                    if(cursor>=0&&cursor<shapes.size()){
+                    render();
+                    }
+                }
                 canvas.setOnMousePressed(e->{
                     render();
                     canvas.setOnMouseDragged(mee->{
@@ -193,6 +204,7 @@ public class Workspace extends AppWorkspaceComponent {
                     });
                 });
             }
+            
         });
 
         Button dButton = new Button("(X)");
@@ -210,7 +222,7 @@ public class Workspace extends AppWorkspaceComponent {
             if(commend.equals("d")){
                 canvas.setCursor(Cursor.DEFAULT);
                 canvas.getCursor();
-                if(cursor<shapes.size()||cursor>=0)
+                if(cursor<shapes.size()&&cursor>=0)
                     shapes.remove(cursor);
                 render();
                 canvas.setOnMousePressed(e->{
@@ -356,7 +368,7 @@ public class Workspace extends AppWorkspaceComponent {
             if(commend.equals("up")){
                 canvas.setCursor(Cursor.DEFAULT);
                 canvas.getCursor();
-                if(cursor<shapes.size()-1||cursor>=0){
+                if(cursor<shapes.size()-1&&cursor>=0){
                     Collections.swap(shapes,cursor, cursor+1);
                 }
                 render();
@@ -391,7 +403,7 @@ public class Workspace extends AppWorkspaceComponent {
             if(commend.equals("do")){
                 canvas.setCursor(Cursor.DEFAULT);
                 canvas.getCursor();
-                if(cursor<shapes.size()||cursor>=1){
+                if(cursor<shapes.size()&&cursor>=1){
                     if(shapes.size()>1)
                         Collections.swap(shapes,cursor, cursor-1);
                 }
@@ -421,7 +433,6 @@ public class Workspace extends AppWorkspaceComponent {
         t.setTranslateY(10);
         t.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar3.getChildren().add(t);
-        final ColorPicker colorPicker = new ColorPicker();
         colorPicker.setValue(Color.WHITE);
         colorPicker.setTranslateY(15);
         colorPicker.setTranslateX(10);
@@ -565,6 +576,10 @@ public class Workspace extends AppWorkspaceComponent {
     @Override
     public void reloadWorkspace() {
         clearworkspace();
+        clear();
+        colorPicker.setValue(Color.WHITE);
+        colorPicker2.setValue(Color.WHITE);
+        colorPicker3.setValue(Color.BLACK);
     }
     
     public void clearworkspace() {
@@ -577,11 +592,17 @@ public class Workspace extends AppWorkspaceComponent {
     public void render(){
 	clearworkspace();
 	for (int i = 0; i <  shapes.size(); i++) {
+            if(cursor>=0&&cursor<shapes.size()){
+                shapes.get(cursor).setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
+                shapes.get(cursor).setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
+                shapes.get(cursor).setStrokeWidth(slider.valueProperty().doubleValue());
+            }
             if(shapes.get(i).getClass().equals(Ellipse.class))
                 renderCir((Ellipse)shapes.get(i));   
             if(shapes.get(i).getClass().equals(Rectangle.class))
-                renderRec((Rectangle)shapes.get(i)); 
+                renderRec((Rectangle)shapes.get(i));
 	}
+        cursor=-1;
     }
     public void renderRec(Rectangle rLoc) {
 	// DRAW HIS RED HEAD
