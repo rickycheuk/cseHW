@@ -392,7 +392,8 @@ public class Workspace extends AppWorkspaceComponent {
                 canvas.setCursor(Cursor.DEFAULT);
                 canvas.getCursor();
                 if(cursor<shapes.size()||cursor>=1){
-                    Collections.swap(shapes,cursor, cursor-1);
+                    if(shapes.size()>1)
+                        Collections.swap(shapes,cursor, cursor-1);
                 }
                 render();
                 canvas.setOnMousePressed(e->{
