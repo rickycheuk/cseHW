@@ -17,6 +17,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
@@ -30,9 +32,13 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import pm.data.DataManager;
+import pm.file.FileManager;
 import saf.ui.AppGUI;
 import saf.AppTemplate;
 import saf.components.AppWorkspaceComponent;
+import static saf.settings.AppStartupConstants.FILE_PROTOCOL;
+import static saf.settings.AppStartupConstants.PATH_IMAGES;
 import saf.ui.AppMessageDialogSingleton;
 import saf.ui.AppYesNoCancelDialogSingleton;
 
@@ -93,7 +99,7 @@ public class Workspace extends AppWorkspaceComponent {
 
     // THIS IS WHERE WE CAN VIEW THE WEB PAGE OR DIRECTLY EDIT THE CSS
     TabPane rightPane;
-
+    
     // HERE ARE OUR DIALOGS
     AppMessageDialogSingleton messageDialog;
     AppYesNoCancelDialogSingleton yesNoCancelDialog;
@@ -143,7 +149,10 @@ public class Workspace extends AppWorkspaceComponent {
         tagToolbar.setMinHeight(80);
         tagButtons = new ArrayList();
         // AND NOW USE THE LOADED TAG TYPES TO ADD BUTTONS
-        Button sButton = new Button("<-");
+        Button sButton = new Button();
+        String path1 = FILE_PROTOCOL + PATH_IMAGES + "SelectionTool.png";
+        Image selectionTool = new Image(path1);
+        sButton.setGraphic(new ImageView(selectionTool));
         tagButtons.add(sButton);
         sButton.setMaxWidth(BUTTON_TAG_WIDTH);
         sButton.setMinWidth(BUTTON_TAG_WIDTH);
@@ -151,7 +160,6 @@ public class Workspace extends AppWorkspaceComponent {
         sButton.setPrefHeight(BUTTON_TAG_WIDTH);
         sButton.setTranslateX(10);
         sButton.setTranslateY(10);
-        sButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar.getChildren().add(sButton);
         sButton.setOnAction(me -> {
             commend="s";
@@ -207,7 +215,10 @@ public class Workspace extends AppWorkspaceComponent {
             
         });
 
-        Button dButton = new Button("(X)");
+        Button dButton = new Button();
+        String path2 = FILE_PROTOCOL + PATH_IMAGES + "Remove.png";
+        Image remove = new Image(path2);
+        dButton.setGraphic(new ImageView(remove));
         tagButtons.add(dButton);
         dButton.setMaxWidth(BUTTON_TAG_WIDTH);
         dButton.setMinWidth(BUTTON_TAG_WIDTH);
@@ -215,7 +226,6 @@ public class Workspace extends AppWorkspaceComponent {
         dButton.setPrefHeight(BUTTON_TAG_WIDTH);
         dButton.setTranslateX(20);
         dButton.setTranslateY(10);
-        dButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 15));
         tagToolbar.getChildren().add(dButton);
         dButton.setOnAction(me -> {
             commend="d";
@@ -241,7 +251,10 @@ public class Workspace extends AppWorkspaceComponent {
         });
         
         
-        Button rButton = new Button("[]");
+        Button rButton = new Button();
+        String path3 = FILE_PROTOCOL + PATH_IMAGES + "Rect.png";
+        Image rect = new Image(path3);
+        rButton.setGraphic(new ImageView(rect));
         tagButtons.add(rButton);
         rButton.setMaxWidth(BUTTON_TAG_WIDTH);
         rButton.setMinWidth(BUTTON_TAG_WIDTH);
@@ -249,7 +262,6 @@ public class Workspace extends AppWorkspaceComponent {
         rButton.setPrefHeight(BUTTON_TAG_WIDTH);
         rButton.setTranslateX(30);
         rButton.setTranslateY(10);
-        rButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar.getChildren().add(rButton);
         rButton.setOnAction(me -> {
             commend="r";
@@ -296,7 +308,10 @@ public class Workspace extends AppWorkspaceComponent {
         });
         
         
-        Button cButton = new Button("O");
+        Button cButton = new Button();
+        String path4 = FILE_PROTOCOL + PATH_IMAGES + "Ellipse.png";
+        Image elli = new Image(path4);
+        cButton.setGraphic(new ImageView(elli));
         tagButtons.add(cButton);
         cButton.setMaxWidth(BUTTON_TAG_WIDTH);
         cButton.setMinWidth(BUTTON_TAG_WIDTH);
@@ -304,7 +319,6 @@ public class Workspace extends AppWorkspaceComponent {
         cButton.setPrefHeight(BUTTON_TAG_WIDTH);
         cButton.setTranslateX(40);
         cButton.setTranslateY(10);
-        cButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar.getChildren().add(cButton);
         cButton.setOnAction(me -> {
             commend="c";
@@ -353,7 +367,10 @@ public class Workspace extends AppWorkspaceComponent {
         tagToolbar2.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
         tagToolbar2.setPrefWidth(260);
         tagToolbar2.setMinHeight(80);
-        Button upButton = new Button("^");
+        Button upButton = new Button();
+        String path5 = FILE_PROTOCOL + PATH_IMAGES + "MoveToFront.png";
+        Image mtf = new Image(path5);
+        upButton.setGraphic(new ImageView(mtf));
         tagButtons.add(upButton);
         upButton.setMaxWidth(BUTTON_TAG_WIDTH+50);
         upButton.setMinWidth(BUTTON_TAG_WIDTH+50);
@@ -361,7 +378,6 @@ public class Workspace extends AppWorkspaceComponent {
         upButton.setPrefHeight(BUTTON_TAG_WIDTH);
         upButton.setTranslateX(20);
         upButton.setTranslateY(10);
-        upButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar2.getChildren().add(upButton);
         upButton.setOnAction(me -> {
             commend="up";
@@ -388,7 +404,10 @@ public class Workspace extends AppWorkspaceComponent {
         });
         
 	
-        Button doButton = new Button("v");
+        Button doButton = new Button();
+        String path6 = FILE_PROTOCOL + PATH_IMAGES + "MoveToBack.png";
+        Image mtb = new Image(path6);
+        doButton.setGraphic(new ImageView(mtb));
         tagButtons.add(doButton);
         doButton.setMaxWidth(BUTTON_TAG_WIDTH+50);
         doButton.setMinWidth(BUTTON_TAG_WIDTH+50);
@@ -396,7 +415,6 @@ public class Workspace extends AppWorkspaceComponent {
         doButton.setPrefHeight(BUTTON_TAG_WIDTH);
         doButton.setTranslateX(30);
         doButton.setTranslateY(10);
-        doButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar2.getChildren().add(doButton);
         doButton.setOnAction(me -> {
             commend="do";
@@ -491,7 +509,10 @@ public class Workspace extends AppWorkspaceComponent {
         tagToolbar7.setPrefWidth(260);
         tagToolbar7.setMinHeight(80);
         tagToolbar7.setMaxHeight(80);
-         Button ssButton = new Button("[O]");
+        Button ssButton = new Button();
+        String path7 = FILE_PROTOCOL + PATH_IMAGES + "Snapshot.png";
+        Image snap = new Image(path7);
+        ssButton.setGraphic(new ImageView(snap));
         tagButtons.add(upButton);
         ssButton.setMaxWidth(BUTTON_TAG_WIDTH+170);
         ssButton.setMinWidth(BUTTON_TAG_WIDTH+170);
@@ -518,6 +539,25 @@ public class Workspace extends AppWorkspaceComponent {
                 canvas.setOnMouseClicked(e->{
                     render();
                 });
+            }
+        });
+        
+        canvas.setOnMouseMoved(e ->{
+            if(shapes.size()<=0){
+                sButton.setDisable(true);
+                dButton.setDisable(true);
+            }
+            else {
+                sButton.setDisable(false);
+                dButton.setDisable(false);
+            }
+            if(shapes.size()<=1){
+                upButton.setDisable(true);
+                doButton.setDisable(true);
+            }
+            else {
+                upButton.setDisable(false);
+                doButton.setDisable(false);
             }
         });
         
@@ -552,7 +592,6 @@ public class Workspace extends AppWorkspaceComponent {
 	// THAT WILL BE DONE WHEN THE USER EITHER CREATES A NEW
 	// COURSE OR LOADS AN EXISTING ONE FOR EDITING
 	workspaceActivated = false;
-        
         
     }
     
