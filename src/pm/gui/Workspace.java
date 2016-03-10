@@ -2,6 +2,8 @@ package pm.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javafx.geometry.Orientation;
 import javafx.scene.*;
@@ -11,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -23,6 +26,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
@@ -119,7 +123,10 @@ public class Workspace extends AppWorkspaceComponent {
         canvas.setStyle("-fx-background-color: cyan");
 	gc = canvas.getGraphicsContext2D();
         
+        canvas.setCursor(Cursor.DEFAULT);
+        canvas.getCursor();
         
+        Slider slider = new Slider(0, 30, 15);
         
         Group root = new Group();
         StackPane holder = new StackPane();
@@ -145,20 +152,34 @@ public class Workspace extends AppWorkspaceComponent {
         sButton.setPrefHeight(BUTTON_TAG_WIDTH);
         sButton.setTranslateX(10);
         sButton.setTranslateY(10);
+        sButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar.getChildren().add(sButton);
         sButton.setOnAction(me -> {
             commend="s";
+            canvas.setCursor(Cursor.DEFAULT);
+            canvas.getCursor();
             if(commend.equals("s")){
                 canvas.setOnMouseClicked(e->{
                     for(int i=shapes.size()-1;i>=0;i--){
                         if(shapes.get(i).getLayoutBounds().contains(e.getX(), e.getY())){
                             cursor=i;
-                            gc.beginPath();
-                            gc.setStroke(Paint.valueOf("#ffff00"));
-                            gc.setLineWidth(1);
-                            gc.rect(shapes.get(i).getLayoutBounds().getMinX(), shapes.get(i).getLayoutBounds().getMinY(), shapes.get(i).getLayoutBounds().getWidth(), shapes.get(i).getLayoutBounds().getHeight());
-                            gc.stroke();
-                            break;
+                            if(shapes.get(i).getClass().equals(Rectangle.class)){
+                                gc.beginPath();
+                                gc.setStroke(Paint.valueOf("#ffff00"));
+                                gc.setLineWidth(1);
+                                gc.rect(shapes.get(i).getLayoutBounds().getMinX(), shapes.get(i).getLayoutBounds().getMinY(), shapes.get(i).getLayoutBounds().getWidth(), shapes.get(i).getLayoutBounds().getHeight());
+                                gc.stroke();
+                                break;
+                            }
+                            if(shapes.get(i).getClass().equals(Ellipse.class)){
+                                gc.beginPath();
+                                gc.setStroke(Paint.valueOf("#ffff00"));
+                                gc.setLineWidth(1);
+                                Ellipse h=(Ellipse)shapes.get(i);
+                                gc.strokeOval(h.getCenterX(), h.getCenterY(), h.getRadiusX(), h.getRadiusY());
+                                gc.stroke();
+                                break;
+                            }
                         }
                     }
                 });
@@ -182,20 +203,27 @@ public class Workspace extends AppWorkspaceComponent {
         dButton.setPrefHeight(BUTTON_TAG_WIDTH);
         dButton.setTranslateX(20);
         dButton.setTranslateY(10);
+        dButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 15));
         tagToolbar.getChildren().add(dButton);
         dButton.setOnAction(me -> {
             commend="d";
             if(commend.equals("d")){
-                
+                canvas.setCursor(Cursor.DEFAULT);
+                canvas.getCursor();
+                if(cursor<shapes.size()||cursor>=0)
+                    shapes.remove(cursor);
                 render();
                 canvas.setOnMousePressed(e->{
                     render();
-                    canvas.setOnMouseDragged(mee->{
-                        render();
-                    });
-                    canvas.setOnMouseReleased(mee->{
-                        render();
-                    });
+                });
+                canvas.setOnMouseDragged(mee->{
+                    render();
+                });
+                canvas.setOnMouseReleased(mee->{
+                    render();
+                });
+                canvas.setOnMouseClicked(e->{
+                    render();
                 });
             }
         });
@@ -209,10 +237,13 @@ public class Workspace extends AppWorkspaceComponent {
         rButton.setPrefHeight(BUTTON_TAG_WIDTH);
         rButton.setTranslateX(30);
         rButton.setTranslateY(10);
+        rButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar.getChildren().add(rButton);
         rButton.setOnAction(me -> {
             commend="r";
             if(commend.equals("r")){
+                canvas.setCursor(Cursor.CROSSHAIR);
+                canvas.getCursor();
                 canvas.setOnMousePressed(e->{
                     Rectangle rec = new Rectangle();
                     rec.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
@@ -223,6 +254,7 @@ public class Workspace extends AppWorkspaceComponent {
                     rec.setY(e.getY());
                     rec.setWidth(0);
                     rec.setHeight(0);
+                    rec.setStrokeWidth(slider.valueProperty().doubleValue());
                     render();
                 });
                 canvas.setOnMouseDragged(mm->{
@@ -233,6 +265,7 @@ public class Workspace extends AppWorkspaceComponent {
                     rec.setY(intY);
                     rec.setWidth(mm.getX()- rec.getX());
                     rec.setHeight(mm.getY()- rec.getY());
+                    rec.setStrokeWidth(slider.valueProperty().doubleValue());
                     shapes.add(rec);
                     render();
                     shapes.remove(rec);
@@ -259,15 +292,20 @@ public class Workspace extends AppWorkspaceComponent {
         cButton.setPrefHeight(BUTTON_TAG_WIDTH);
         cButton.setTranslateX(40);
         cButton.setTranslateY(10);
+        cButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar.getChildren().add(cButton);
         cButton.setOnAction(me -> {
             commend="c";
             if(commend.equals("c")){
+                canvas.setCursor(Cursor.CROSSHAIR);
+                canvas.getCursor();
                 canvas.setOnMousePressed(e->{
-                    Circle cir = new Circle();
+                    Ellipse cir = new Ellipse();
                     cir.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
                     cir.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
-                    cir.setRadius(0);
+                    cir.setRadiusX(0);
+                    cir.setRadiusY(0);
+                    cir.setStrokeWidth(slider.valueProperty().doubleValue());
                     intX=e.getX();
                     intY=e.getY();
                     cir.setCenterX(e.getX());
@@ -275,17 +313,20 @@ public class Workspace extends AppWorkspaceComponent {
                     render();
                 });
                 canvas.setOnMouseDragged(mm->{
-                    Circle cir = new Circle();
+                    Ellipse cir = new Ellipse();
                     cir.setFill(Paint.valueOf("#"+ colorPicker2.getValue().toString().substring(2,8)));
                     cir.setStroke(Paint.valueOf("#"+ colorPicker3.getValue().toString().substring(2,8)));
                     cir.setCenterX(intX);
                     cir.setCenterY(intY);
-                    cir.setRadius(mm.getX() - cir.getCenterX());
+                    cir.setStrokeWidth(slider.valueProperty().doubleValue());
+                    cir.setRadiusX(mm.getX() - cir.getCenterX());
+                    cir.setRadiusY(mm.getY() - cir.getCenterY());
                     shapes.add(cir);
                     render();
                     shapes.remove(cir);
                     canvas.setOnMouseReleased(mee->{
-                        cir.setRadius(mee.getX() - cir.getCenterX());
+                        cir.setRadiusX(mm.getX() - cir.getCenterX());
+                        cir.setRadiusY(mm.getY() - cir.getCenterY());
                         shapes.add(cir);
                         render();
                     });
@@ -306,9 +347,33 @@ public class Workspace extends AppWorkspaceComponent {
         upButton.setMinWidth(BUTTON_TAG_WIDTH+50);
         upButton.setPrefWidth(BUTTON_TAG_WIDTH+50);
         upButton.setPrefHeight(BUTTON_TAG_WIDTH);
-        upButton.setTranslateX(10);
+        upButton.setTranslateX(20);
         upButton.setTranslateY(10);
+        upButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar2.getChildren().add(upButton);
+        upButton.setOnAction(me -> {
+            commend="up";
+            if(commend.equals("up")){
+                canvas.setCursor(Cursor.DEFAULT);
+                canvas.getCursor();
+                if(cursor<shapes.size()-1||cursor>=0){
+                    Collections.swap(shapes,cursor, cursor+1);
+                }
+                render();
+                canvas.setOnMousePressed(e->{
+                    render();
+                });
+                canvas.setOnMouseDragged(mee->{
+                    render();
+                });
+                canvas.setOnMouseReleased(mee->{
+                    render();
+                });
+                canvas.setOnMouseClicked(e->{
+                    render();
+                });
+            }
+        });
         
 	
         Button doButton = new Button("v");
@@ -317,9 +382,33 @@ public class Workspace extends AppWorkspaceComponent {
         doButton.setMinWidth(BUTTON_TAG_WIDTH+50);
         doButton.setPrefWidth(BUTTON_TAG_WIDTH+50);
         doButton.setPrefHeight(BUTTON_TAG_WIDTH);
-        doButton.setTranslateX(20);
+        doButton.setTranslateX(30);
         doButton.setTranslateY(10);
+        doButton.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar2.getChildren().add(doButton);
+        doButton.setOnAction(me -> {
+            commend="do";
+            if(commend.equals("do")){
+                canvas.setCursor(Cursor.DEFAULT);
+                canvas.getCursor();
+                if(cursor<shapes.size()||cursor>=1){
+                    Collections.swap(shapes,cursor, cursor-1);
+                }
+                render();
+                canvas.setOnMousePressed(e->{
+                    render();
+                });
+                canvas.setOnMouseDragged(mee->{
+                    render();
+                });
+                canvas.setOnMouseReleased(mee->{
+                    render();
+                });
+                canvas.setOnMouseClicked(e->{
+                    render();
+                });
+            }
+        });
         
         Pane tagToolbar3 = new FlowPane(Orientation.VERTICAL);
         tagToolbar3.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
@@ -333,9 +422,10 @@ public class Workspace extends AppWorkspaceComponent {
         tagToolbar3.getChildren().add(t);
         final ColorPicker colorPicker = new ColorPicker();
         colorPicker.setValue(Color.WHITE);
-        colorPicker.setTranslateY(20);
+        colorPicker.setTranslateY(15);
         colorPicker.setTranslateX(10);
         tagToolbar3.getChildren().add(colorPicker);
+        
 
         Pane tagToolbar4 = new FlowPane(Orientation.VERTICAL);
         tagToolbar4.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
@@ -348,7 +438,7 @@ public class Workspace extends AppWorkspaceComponent {
         t1.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar4.getChildren().add(t1);
         colorPicker2.setValue(Color.WHITE);
-        colorPicker2.setTranslateY(20);
+        colorPicker2.setTranslateY(15);
         colorPicker2.setTranslateX(10);
         tagToolbar4.getChildren().add(colorPicker2);
 	
@@ -363,11 +453,11 @@ public class Workspace extends AppWorkspaceComponent {
         t2.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar5.getChildren().add(t2);
         colorPicker3.setValue(Color.BLACK);
-        colorPicker3.setTranslateY(20);
+        colorPicker3.setTranslateY(15);
         colorPicker3.setTranslateX(10);
         tagToolbar5.getChildren().add(colorPicker3);
         
-        Pane tagToolbar6 = new FlowPane(Orientation.HORIZONTAL);
+        Pane tagToolbar6 = new FlowPane(Orientation.VERTICAL);
         tagToolbar6.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
         tagToolbar6.setPrefWidth(260);
         tagToolbar6.setMinHeight(80);
@@ -377,6 +467,12 @@ public class Workspace extends AppWorkspaceComponent {
         t3.setTranslateY(10);
         t3.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         tagToolbar6.getChildren().add(t3);
+        slider.setTranslateX(50);
+        slider.setTranslateY(20);
+        slider.setScaleY(1.5);
+        slider.setScaleX(1.5);
+        tagToolbar6.getChildren().add(slider);
+        
         
         Pane tagToolbar7 = new FlowPane(Orientation.HORIZONTAL);
         tagToolbar7.setStyle("-fx-background-color: #75bdd1; -fx-border-color: #327b8f; -fx-border-width: 3");
@@ -392,6 +488,26 @@ public class Workspace extends AppWorkspaceComponent {
         ssButton.setTranslateX(10);
         ssButton.setTranslateY(10);
         tagToolbar7.getChildren().add(ssButton);
+        ssButton.setOnAction(me -> {
+            commend="ss";
+            if(commend.equals("ss")){
+                canvas.setCursor(Cursor.DEFAULT);
+                canvas.getCursor();
+                render();
+                canvas.setOnMousePressed(e->{
+                    render();
+                });
+                canvas.setOnMouseDragged(mee->{
+                    render();
+                });
+                canvas.setOnMouseReleased(mee->{
+                    render();
+                });
+                canvas.setOnMouseClicked(e->{
+                    render();
+                });
+            }
+        });
         
         vbox.getChildren().addAll(tagToolbar,tagToolbar2,tagToolbar3,tagToolbar4,tagToolbar5,tagToolbar6,tagToolbar7);
         
@@ -447,7 +563,7 @@ public class Workspace extends AppWorkspaceComponent {
      */
     @Override
     public void reloadWorkspace() {
-        
+        clearworkspace();
     }
     
     public void clearworkspace() {
@@ -460,8 +576,8 @@ public class Workspace extends AppWorkspaceComponent {
     public void render(){
 	clearworkspace();
 	for (int i = 0; i <  shapes.size(); i++) {
-            if(shapes.get(i).getClass().equals(Circle.class))
-                renderCir((Circle)shapes.get(i));   
+            if(shapes.get(i).getClass().equals(Ellipse.class))
+                renderCir((Ellipse)shapes.get(i));   
             if(shapes.get(i).getClass().equals(Rectangle.class))
                 renderRec((Rectangle)shapes.get(i)); 
 	}
@@ -472,21 +588,21 @@ public class Workspace extends AppWorkspaceComponent {
 	gc.fillRect(rLoc.getX(), rLoc.getY(), rLoc.getWidth(), rLoc.getHeight());
         gc.beginPath();
 	gc.setStroke(rLoc.getStroke());
-	gc.setLineWidth(1);
+	gc.setLineWidth(rLoc.getStrokeWidth());
 	gc.rect(rLoc.getX(), rLoc.getY(), rLoc.getWidth(), rLoc.getHeight());
 	gc.stroke();
 	
 	// AND THEN DRAW THE REST OF HIM
     }
-    public void renderCir(Circle cLoc) {
+    public void renderCir(Ellipse cLoc) {
     
 	// DRAW HIS RED HEAD
         gc.setFill(cLoc.getFill());
-	gc.fillOval(cLoc.getCenterX(), cLoc.getCenterY(), cLoc.getRadius(), cLoc.getRadius());
+	gc.fillOval(cLoc.getCenterX(), cLoc.getCenterY(), cLoc.getRadiusX(), cLoc.getRadiusY());
         gc.beginPath();
 	gc.setStroke(cLoc.getStroke());
-	gc.setLineWidth(1);
-	gc.strokeOval(cLoc.getCenterX(), cLoc.getCenterY(), cLoc.getRadius(), cLoc.getRadius());
+	gc.setLineWidth(cLoc.getStrokeWidth());
+	gc.strokeOval(cLoc.getCenterX(), cLoc.getCenterY(), cLoc.getRadiusX(), cLoc.getRadiusY());
 	gc.stroke();
 	
 	// AND THEN DRAW THE REST OF HIM
